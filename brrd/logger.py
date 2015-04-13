@@ -94,15 +94,14 @@ class MetricLogger(cliff.command.Command):
 
         self.log.info('Connecting to <%s>...', parsed_args.endpoint)
 
-        ctx = zmq.Context()
-        zsock = ctx.socket(zmq.SUB)
-        zsock.hwm = 3000
-        zsock.linger = 0
-        zsock.connect(parsed_args.endpoint)
-        zsock.subscribe = b''
+        socket = zmq.Context().socket(zmq.SUB)
+        socket.connect(parsed_args.endpoint)
+        socket.set(zmq.LINGER, 0)
+        socket.set(zmq.SUBSCRIBE, b'')
 
-        for meta in iter(zsock.recv_json, ''):
-            if meta.get('schema') == 'NavigationTiming':
+        while 1:
+            meta = socket.recv_json()
+            if meta['schema'] == 'NavigationTiming':
                 window.add(meta['timestamp'], meta['event'])
-                if not worker.is_alive() and now() - time_start >= WINDOW_SPAN:
-                    worker.start()
+            if not worker.is_alive() and now() - time_start >= WINDOW_SPAN:
+                worker.start()
