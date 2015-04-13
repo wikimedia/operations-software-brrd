@@ -1,0 +1,11 @@
+*.egg
+*.egg-info/
+.Python
+.eggs/
+.venv/
+build/
+dist/
+eggs/
+parts/
+sdist/
+var/

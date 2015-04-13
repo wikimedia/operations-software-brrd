@@ -1,0 +1,3 @@
+py-rrdtool>=0.2
+pyzmq>=14
+cliff>=1
