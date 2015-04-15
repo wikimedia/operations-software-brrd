@@ -20,17 +20,82 @@
 """
 from __future__ import absolute_import, division
 
+import argparse
 import calendar
 import ctypes
 import ctypes.util
 import datetime
+import logging
 import os
+import sys
 import threading
 
 
-__all__ = ('monotonic_clock', 'now', 'PeriodicThread')
+__all__ = ('Application', 'monotonic_clock', 'now', 'PeriodicThread')
 
 CLOCK_MONOTONIC_RAW = 4
+
+
+class Application(object):
+    """Represents a command-line application."""
+
+    log_format = '[%(asctime)s] %(message)s'
+
+    def run(self):
+        pass
+
+    def __init__(self, args=None):
+        self.args = self.get_argument_parser().parse_args(args)
+        self.log = self.get_logger()
+
+    def start(self):
+        try:
+            self.run()
+        finally:
+            self.clean_up()
+
+    def clean_up(self):
+        pass
+
+    def get_description(self):
+        return getattr(self, 'description', self.get_name())
+
+    def get_argument_parser(self):
+        parser = argparse.ArgumentParser(prog=self.get_name(),
+                                         description=self.get_description())
+        parser.add_argument(
+            '-v', '--verbose',
+            action='store_const',
+            const=logging.DEBUG,
+            default=logging.INFO,
+            dest='log_level',
+            help='Increase verbosity of output.',
+        )
+        parser.add_argument(
+            '--log-file',
+            default=None,
+            help='Specify a file to log output. Disabled by default.',
+            type=os.path.abspath
+        )
+        return parser
+
+    def get_name(self):
+        return getattr(self, 'name', self.__class__.__name__)
+
+    def get_logger(self):
+        """Get a logging.Logger instance for this application."""
+        logger = logging.getLogger(self.get_name())
+        handlers = [logging.StreamHandler(stream=sys.stderr)]
+        if self.args.log_file:
+            handlers.append(logging.handlers.RotatingFileHandler(
+                self.args.log_file, backupCount=10, maxBytes=5e7))
+        formatter = logging.Formatter(self.log_format)
+        logger.setLevel(self.args.log_level)
+        for handler in handlers:
+            handler.setFormatter(formatter)
+            handler.setLevel(logging.INFO)
+            logger.addHandler(handler)
+        return logger
 
 
 class PeriodicThread(threading.Thread):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-  brrd.main
-  ~~~~~~~~~
+  brrd.utils
+  ~~~~~~~~~~
 
   Copyright 2015 Ori Livneh <ori@wikimedia.org>
 
@@ -19,13 +19,10 @@
 
 """
 import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
-import cliff.app
-import cliff.commandmanager
+from . import *
 
-
-def main(argv=sys.argv[1:]):
-    manager = cliff.commandmanager.CommandManager('brrd')
-    app = cliff.app.App(description='brrd', version='0.1',
-                        command_manager=manager)
-    return app.run(argv)
+app = MetricLogger()
+sys.exit(app.run())

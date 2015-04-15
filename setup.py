@@ -28,10 +28,6 @@ setup(
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
         'Intended Audience :: Developers',
         'Environment :: Console',
     ],
@@ -46,15 +42,6 @@ setup(
     namespace_packages=[],
     packages=find_packages(),
     include_package_data=True,
-
-    entry_points={
-        'console_scripts': [
-            'brrd = brrd.main:main',
-        ],
-        'brrd': [
-            'logger = brrd.logger:MetricLogger',
-        ],
-    },
 
     zip_safe=False,
 )

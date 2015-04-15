@@ -24,8 +24,6 @@ import bisect
 import logging
 import zmq
 
-import cliff.command
-
 from .consts import *
 from .rrd import *
 from .stats import *
@@ -53,13 +51,13 @@ def update_rrd(rrd, window):
     rrd.update(medians)
 
 
-class MetricLogger(cliff.command.Command):
+class MetricLogger(Application):
     "A simple command that prints a message."
 
-    log = logging.getLogger(__name__)
+    name = 'brrd'
 
-    def get_parser(self, prog_name):
-        parser = super(MetricLogger, self).get_parser(prog_name)
+    def get_argument_parser(self):
+        parser = super(MetricLogger, self).get_argument_parser()
         parser.add_argument('endpoint', help='EventLogging endpoint URL')
         parser.add_argument('rrd', help='RRD file')
         return parser
@@ -83,19 +81,19 @@ class MetricLogger(cliff.command.Command):
 
         return rrd
 
-    def take_action(self, parsed_args):
+    def run(self):
         window = SlidingWindow(WINDOW_SPAN)
-        rrd = self.create_rrd(parsed_args.rrd)
+        rrd = self.create_rrd(self.args.rrd)
 
         worker = PeriodicThread(interval=STEP, target=update_rrd,
                                 args=(rrd, window))
         worker.daemon = True
         time_start = now()
 
-        self.log.info('Connecting to <%s>...', parsed_args.endpoint)
+        self.log.info('Connecting to <%s>...', self.args.endpoint)
 
         socket = zmq.Context().socket(zmq.SUB)
-        socket.connect(parsed_args.endpoint)
+        socket.connect(self.args.endpoint)
         socket.set(zmq.LINGER, 0)
         socket.set(zmq.SUBSCRIBE, b'')
 
